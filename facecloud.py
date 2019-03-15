@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 usage: python facecloud.py infile outfile names **kwargs
 
@@ -134,17 +132,18 @@ def _castType(s):
 if __name__ == '__main__':
 
     numArgs = len(sys.argv)
-    minArgs = 2
+    minArgs = 3 # minimum number of args
     
     if numArgs < minArgs:
-        raise TypeError("Please provide an infile and an outfile")
+        print(__doc__)
+        sys.exit(1)
     
     infile = sys.argv[1]
     outfile = sys.argv[2]
+    kwargs = {}
 
     if numArgs > minArgs:
-        remainArgs = sys.argv[minArgs+1:]
-        kwargs = {}
+        remainArgs = sys.argv[minArgs:]
         for r in remainArgs:
             k,v = r.split('=')
             # guess the type of the argument and cast
