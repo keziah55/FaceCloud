@@ -59,7 +59,9 @@ def getMessageText(file):
     msgClass = "_3-96 _2let"
     partClass = "_2lek"
     
-    # <div class="_2lek">Participants: Annie Saxberg, Keziah Milligan and Susanna Hotham</div>
+    # If more than two people are in the cjat <div class="_2lek"> lists
+    # the participants
+    # Otherwise, the name can be found in <title>
     part = soup.find('div', attrs={'class':partClass})
     m = re.match(r"(Participants:)(.*)", part.text)
     if m:
@@ -68,6 +70,7 @@ def getMessageText(file):
         part = soup.find('title')
         names = part.text
         
+    # make list of first names
     names = [n.strip() for n in re.split(r",|and", names)]
     names = [name.split(' ')[0] for name in names]
     
