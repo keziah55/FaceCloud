@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-usage: python facecloud.py infile outfile names kwargs
+usage: python facecloud.py infile outfile names **kwargs
 
-Make a word cloud from Facebook messages
+Make a word cloud from Facebook messages and save image
 
 positional arguments:
     infile      input message html file
     outfile     file to save the word cloud image to
+    
+Any additional keyword arguments are given to the WordCloud constructor.
+The documentation for WordCloud can be found here:
+http://amueller.github.io/word_cloud/generated/wordcloud.WordCloud.html#wordcloud.WordCloud
 """
 
 import re
