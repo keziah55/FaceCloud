@@ -23,7 +23,7 @@ For example,
 ```
 python facecloud.py messages.html wordcloud.png width=1536 height=1024 colormap=plasma
 ```
-makes a word cloud and saves it to an image 1536x1024 and uses the `plasma' colormap.
+makes a word cloud and saves it to an image 1536x1024 and uses the 'plasma' colormap.
 
 WordCloud uses Matplotlib colormaps. A full list of available colormaps can be found 
 [here](https://matplotlib.org/gallery/color/colormap_reference.html).
