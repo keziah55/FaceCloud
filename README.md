@@ -3,12 +3,13 @@
 (C) Keziah Milligan, 2019
 GPL v3. See https://www.gnu.org/licenses/gpl-3.0.en.html
 
-FaceCloud is a program which makes a word cloud of a conversation,
+FaceCloud is a Python program which makes a word cloud of a conversation,
 given an html file of Facebook messages (as you get when you 
 [download your data](https://www.facebook.com/help/212802592074644)).
 
 ## Requirements
 
+- Python 3
 - [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
 - [WordCloud](https://github.com/amueller/word_cloud)
 
