@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+usage: python facecloud.py infile outfile names kwargs
+
 Make a word cloud from Facebook messages
 
-
+positional arguments:
+    infile      input message html file
+    outfile     file to save the word cloud image to
 """
 
 import re
@@ -13,7 +17,7 @@ import ast
 import sys
 
 
-def makeWordCloud(file, outfile, names=None, **kwargs):
+def makeWordCloud(file, outfile, **kwargs):
     """ Get text from Facebook messages
     
         Parameters
@@ -22,27 +26,23 @@ def makeWordCloud(file, outfile, names=None, **kwargs):
             Path to html file of messages
         outfile : str
             Path to save the wordcloud image
-        names : list
-            List of names of conversation participants
         kwargs  
             Wordcloud object arguments
     """
     
-    text = getMessageText(file, names)
+    text = getMessageText(file)
     wordcloud = WordCloud(**kwargs)
     wordcloud.generate(text)
     wordcloud.to_file(outfile)
 
 
-def getMessageText(file, names=None):
+def getMessageText(file):
     """ Get text from Facebook messages
     
         Parameters
         ----------
         file : str
             Path to html file of messages
-        names : list
-            List of names of conversation participants
             
         Returns
         -------
@@ -54,11 +54,23 @@ def getMessageText(file, names=None):
     
     soup = BeautifulSoup(html, 'html.parser')
     
-    # only need body
-    soup = soup.body
+    msgClass = "_3-96 _2let"
+    partClass = "_2lek"
+    
+    # <div class="_2lek">Participants: Annie Saxberg, Keziah Milligan and Susanna Hotham</div>
+    part = soup.find('div', attrs={'class':partClass})
+    m = re.match(r"(Participants:)(.*)", part.text)
+    if m:
+        names = m.group(2)
+    else:
+        part = soup.find('title')
+        names = part.text
+        
+    names = [n.strip() for n in re.split(r",|and", names)]
+    names = [name.split(' ')[0] for name in names]
     
     # message content in <div class="_3-96 _2let"> elements
-    msgs = soup.find_all('div', attrs={'class':"_3-96 _2let"})
+    msgs = soup.find_all('div', attrs={'class':msgClass})
     
     # ignore any text that states a picture/file was sent
     names = '|'.join(names)
@@ -118,23 +130,21 @@ def _castType(s):
 if __name__ == '__main__':
 
     numArgs = len(sys.argv)
+    minArgs = 2
     
-    if numArgs < 3:
-        raise TypeError("Please provide an infile, outfile and names")
+    if numArgs < minArgs:
+        raise TypeError("Please provide an infile and an outfile")
     
     infile = sys.argv[1]
     outfile = sys.argv[2]
-    names = sys.argv[3]
-    # convert names to list, removing any leading or trailing whitespace
-    names = [n.strip() for n in names.split(',')]
-    
-    if numArgs > 3:
-        remainArgs = sys.argv[4:]
+
+    if numArgs > minArgs:
+        remainArgs = sys.argv[minArgs+1:]
         kwargs = {}
         for r in remainArgs:
             k,v = r.split('=')
             # guess the type of the argument and cast
             kwargs[k] = _castType(v)
         
-    makeWordCloud(infile, outfile, names, **kwargs)
+    makeWordCloud(infile, outfile, **kwargs)
     
