@@ -1,11 +1,12 @@
 """
-usage: python facecloud.py infile outfile names **kwargs
+Usage: python facecloud.py infile... outfile [**kwargs]
 
-Make a word cloud from Facebook messages and save image
+Make a word cloud from Facebook and/or WhatsApp messages and save image
 
-positional arguments:
-    infile      input message html file
-    outfile     file to save the word cloud image to
+arguments:
+    -f --facebook [FILE]  file of Facebook messages
+    -w --whatsapp [FILE]  file of WhatsApp messages
+    -o --outfile  [FILE]  file to save the word cloud image to
     
 Any additional keyword arguments are given to the WordCloud constructor.
 The documentation for WordCloud can be found here:
@@ -32,13 +33,13 @@ def makeWordCloud(file, outfile, **kwargs):
             Wordcloud object arguments
     """
     
-    text = getMessageText(file)
+    text = getFacebookMessageText(file)
     wordcloud = WordCloud(**kwargs)
     wordcloud.generate(text)
     wordcloud.to_file(outfile)
 
 
-def getMessageText(file):
+def getFacebookMessageText(file):
     """ Get text from Facebook messages
     
         Parameters
@@ -50,6 +51,9 @@ def getMessageText(file):
         -------
         String of text
     """
+    
+    # join all messages with new lines into one string
+    words = ''
     
     with open(file) as fileobj:
         html = fileobj.read()
@@ -85,21 +89,59 @@ def getMessageText(file):
     # list of words to strip out of text
     ignWords = ['https']
     
-    text = ''
-    
     for msg in msgs:
         msgTxt = _getDivText(msg)
         # if the message is not a picture/file
         if ignMsg.search(msgTxt) is None:
             for word in ignWords:
                 msgTxt = re.sub(word, '', msgTxt)
-            text += '\n' + msgTxt
+            words += '\n' + msgTxt
         
-    return text
+    return words
+
+
+def getWhatsAppMessageText(file):
+    """ Get text from WhatsApp messages
+    
+        Parameters
+        ----------
+        file : str
+            Path to txt file of messages
+            
+        Returns
+        -------
+        String of text
+    """
+    
+    words = ''
+    
+    with open(file) as fileobj:
+        text = fileobj.read()
+        
+    # first message is probably this:
+    # 'Messages to this group are now secured with end-to-end '
+    # 'encryption. Tap for more info.')
+    # So we should analyse the text after this
+    ignMsg = re.search(r"\d\d/\d\d/\d\d\d\d, \d\d:\d\d - .*", text)
+    if ignMsg:
+        _, idx = ignMsg.span()
+        text = text[idx+1:]
+        
+    ignMsgs = ['This message was deleted', '<Media omitted>']
+        
+    msgs = re.split(r"\d\d/\d\d/\d\d\d\d, \d\d:\d\d - .*?: ",  text)
+    # remove empty messages and strip leading and trailing whitespace
+    msgs = [msg.strip() for msg in msgs if msg]
+    
+    for msg in msgs:
+        if msg not in ignMsgs:
+            words += '\n' + msg
+    
+    return words
     
     
 def _getDivText(tag):
-    # read a div tag of messages and return the text of the first div with
+    # read a div tag of fb messages and return the text of the first div with
     # content
     
     # this is necessary because reactions are within the message div
@@ -128,11 +170,24 @@ def _guessType(s):
         return type(value)
     
 def _castType(s):
-    t = _guessType(v)
-    return t(v)
+    t = _guessType(s)
+    return t(s)
     
 
 if __name__ == '__main__':
+    
+#    print(sys.argv)
+#    
+#    args = iter(sys.argv[1:])
+#    
+#    while True:
+#        try:
+#            print(next(args))
+#        except StopIteration:
+#            break
+    
+#    outfile = args[1]
+    
 
     numArgs = len(sys.argv)
     minArgs = 3 # minimum number of args
