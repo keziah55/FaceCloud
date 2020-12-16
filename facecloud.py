@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Usage: python facecloud.py infile... outfile [**kwargs]
 
@@ -7,6 +9,7 @@ arguments:
     -f --facebook [FILE]  file of Facebook messages
     -w --whatsapp [FILE]  file of WhatsApp messages
     -o --outfile  [FILE]  file to save the word cloud image to
+    -e --extra [...] additional args to pass to WordCloud
     
 Any additional keyword arguments are given to the WordCloud constructor.
 The documentation for WordCloud can be found here:
@@ -25,15 +28,18 @@ def makeWordCloud(file, outfile, **kwargs):
     
         Parameters
         ----------
-        file : str
-            Path to html file of messages
+        file : str, list
+            Path to html file of messages (or list of paths)
         outfile : str
             Path to save the wordcloud image
         kwargs  
             Wordcloud object arguments
     """
-    
-    text = getFacebookMessageText(file)
+    if isinstance(file, str):
+        file = [file]
+    text = ''
+    for f in file:
+        text += getFacebookMessageText(f)
     wordcloud = WordCloud(**kwargs)
     wordcloud.generate(text)
     wordcloud.to_file(outfile)
@@ -175,37 +181,55 @@ def _castType(s):
     
 
 if __name__ == '__main__':
-    
-#    print(sys.argv)
-#    
-#    args = iter(sys.argv[1:])
-#    
-#    while True:
-#        try:
-#            print(next(args))
-#        except StopIteration:
-#            break
-    
-#    outfile = args[1]
-    
 
-    numArgs = len(sys.argv)
-    minArgs = 3 # minimum number of args
     
-    if numArgs < minArgs:
-        print(__doc__)
-        sys.exit(1)
+    args = sys.argv[1:]
     
-    infile = sys.argv[1]
-    outfile = sys.argv[2]
+    if args[0] in ['-f', '--facebook', '-w', '--whatsapp']:
+        files = []
+        n = 1
+        while True:
+            arg = args[n]
+            if not arg.startswith('-'):
+                files.append(arg)
+            else:
+                break
+            n += 1
+    args = args[n:]
+    
+    if args[0] in ['-o', '--outfile']:
+        outfile = args[1]
+    args = args[2:]
+    
     kwargs = {}
-
-    if numArgs > minArgs:
-        remainArgs = sys.argv[minArgs:]
-        for r in remainArgs:
+    
+    if len(args) > 0 and args[0] in ['-e', '--extra']:
+        args = args[1:]
+        for r in args:
             k,v = r.split('=')
             # guess the type of the argument and cast
             kwargs[k] = _castType(v)
+            
+    
+    makeWordCloud(files, outfile, **kwargs)
+    
+    
+    # minArgs = 3 # minimum number of args
+    
+    # if numArgs < minArgs:
+    #     print(__doc__)
+    #     sys.exit(1)
+    
+    # infile = sys.argv[1]
+    # outfile = sys.argv[2]
+    # kwargs = {}
+
+    # if numArgs > minArgs:
+    #     remainArgs = sys.argv[minArgs:]
+        # for r in remainArgs:
+        #     k,v = r.split('=')
+        #     # guess the type of the argument and cast
+        #     kwargs[k] = _castType(v)
         
-    makeWordCloud(infile, outfile, **kwargs)
+    # makeWordCloud(infile, outfile, **kwargs)
     
